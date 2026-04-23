@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "WellStaq Employee",
+    "slug": "wellstaq-employee-mobile",
+    "scheme": "wellstaq",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
