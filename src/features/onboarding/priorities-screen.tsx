@@ -1,14 +1,13 @@
 import { router } from "expo-router";
-import { ChevronLeft, GripVertical } from "lucide-react-native";
 import { type Dispatch, type MutableRefObject, type SetStateAction, useEffect, useMemo, useRef, useState } from "react";
-import { Animated, PanResponder, Pressable, StyleSheet, View } from "react-native";
+import { Animated, PanResponder, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { PrimaryButton } from "@/components/ui/button";
-import { OnboardingProgressBar } from "@/components/ui/onboarding-progress";
+import { OnboardingHeader, OnboardingPrimaryCta, OnboardingTopBar, onboardingUi } from "@/components/domain/onboarding";
 import { AppText } from "@/components/ui/text";
 import { onboardingRepository } from "@/services/mock/repositories";
 import { WellbeingPriority } from "@/models";
+import { useSessionStore } from "@/state/session-store";
 import { theme } from "@/theme";
 
 const PRIORITY_ITEMS: { id: WellbeingPriority; label: string }[] = [
@@ -20,13 +19,15 @@ const PRIORITY_ITEMS: { id: WellbeingPriority; label: string }[] = [
   { id: "feel-connected", label: "feel-connected" }
 ];
 
-const ITEM_HEIGHT = 88;
-const ITEM_GAP = 24;
+const ITEM_HEIGHT = 44;
+const ITEM_GAP = 12;
 const ITEM_STEP = ITEM_HEIGHT + ITEM_GAP;
 
 export function PrioritiesScreen() {
   const [order, setOrder] = useState(PRIORITY_ITEMS.map((item) => item.id));
   const [draggingId, setDraggingId] = useState<WellbeingPriority | null>(null);
+  const orderRef = useRef(order);
+  const completeOnboarding = useSessionStore((state) => state.completeOnboarding);
 
   const positionsRef = useRef<Record<WellbeingPriority, Animated.Value>>({
     "reduce-stress": new Animated.Value(0 * ITEM_STEP),
@@ -36,6 +37,10 @@ export function PrioritiesScreen() {
     "stay-active": new Animated.Value(4 * ITEM_STEP),
     "feel-connected": new Animated.Value(5 * ITEM_STEP)
   });
+
+  useEffect(() => {
+    orderRef.current = order;
+  }, [order]);
 
   useEffect(() => {
     order.forEach((id, index) => {
@@ -55,39 +60,34 @@ export function PrioritiesScreen() {
 
   async function handleContinue() {
     await onboardingRepository.savePriorities(order);
-    router.push("/(onboarding)/privacy");
+    completeOnboarding();
+    router.replace("/(tabs)/home");
   }
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.screen}>
-        <View style={styles.topRow}>
-          <Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.backButton}>
-            <ChevronLeft size={28} color={theme.colors.grey[1]} />
-          </Pressable>
-          <View style={styles.progressWrap}>
-            <OnboardingProgressBar segments={3} activeSegments={2} />
-          </View>
-        </View>
+        <OnboardingTopBar progress={0.755} onBack={() => router.back()} />
 
-        <View style={styles.headerBlock}>
-          <AppText variant="h3" weight="bold" style={styles.title}>
-            Choose your priorities
-          </AppText>
-          <AppText color="#676767" style={styles.subtitle}>
-            We will use these to keep your homepage practical and unique to only you
-          </AppText>
-        </View>
+        <OnboardingHeader
+          title="Choose your priorities"
+          subtitle="We will use these to keep your homepage practical and unique to only you"
+        />
 
         <View style={styles.listSection}>
-          <AppText color="#676767" style={styles.listLabel}>
-            Arrange in order of importance
-          </AppText>
-          <SortablePriorityList order={order} setOrder={setOrder} draggingId={draggingId} setDraggingId={setDraggingId} positionsRef={positionsRef} />
+          <AppText style={styles.listLabel}>Arrange in order of importance</AppText>
+          <SortablePriorityList
+            order={order}
+            setOrder={setOrder}
+            draggingId={draggingId}
+            setDraggingId={setDraggingId}
+            positionsRef={positionsRef}
+            orderRef={orderRef}
+          />
         </View>
 
         <View style={styles.footer}>
-          <PrimaryButton label="Continue" onPress={() => void handleContinue()} style={styles.footerButton} />
+          <OnboardingPrimaryCta label="Continue" onPress={() => void handleContinue()} />
         </View>
       </View>
     </SafeAreaView>
@@ -99,13 +99,15 @@ function SortablePriorityList({
   setOrder,
   draggingId,
   setDraggingId,
-  positionsRef
+  positionsRef,
+  orderRef
 }: {
   order: WellbeingPriority[];
   setOrder: Dispatch<SetStateAction<WellbeingPriority[]>>;
   draggingId: WellbeingPriority | null;
   setDraggingId: (value: WellbeingPriority | null) => void;
   positionsRef: MutableRefObject<Record<WellbeingPriority, Animated.Value>>;
+  orderRef: MutableRefObject<WellbeingPriority[]>;
 }) {
   return (
     <View style={styles.listContainer}>
@@ -120,11 +122,11 @@ function SortablePriorityList({
           <SortablePriorityRow
             key={item.id}
             item={item}
-            order={order}
             setOrder={setOrder}
             draggingId={draggingId}
             setDraggingId={setDraggingId}
             positionsRef={positionsRef}
+            orderRef={orderRef}
           />
         );
       })}
@@ -134,18 +136,18 @@ function SortablePriorityList({
 
 function SortablePriorityRow({
   item,
-  order,
   setOrder,
   draggingId,
   setDraggingId,
-  positionsRef
+  positionsRef,
+  orderRef
 }: {
   item: { id: WellbeingPriority; label: string };
-  order: WellbeingPriority[];
   setOrder: Dispatch<SetStateAction<WellbeingPriority[]>>;
   draggingId: WellbeingPriority | null;
   setDraggingId: (value: WellbeingPriority | null) => void;
   positionsRef: MutableRefObject<Record<WellbeingPriority, Animated.Value>>;
+  orderRef: MutableRefObject<WellbeingPriority[]>;
 }) {
   const isDragging = draggingId === item.id;
   const dragStartY = useRef(0);
@@ -156,6 +158,7 @@ function SortablePriorityRow({
       PanResponder.create({
         onStartShouldSetPanResponder: () => true,
         onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dy) > 2,
+        onPanResponderTerminationRequest: () => false,
         onPanResponderGrant: () => {
           setDraggingId(item.id);
           position.stopAnimation((current) => {
@@ -163,45 +166,44 @@ function SortablePriorityRow({
           });
         },
         onPanResponderMove: (_, gestureState) => {
-          const maxY = (order.length - 1) * ITEM_STEP;
+          const currentOrder = orderRef.current;
+          const maxY = (currentOrder.length - 1) * ITEM_STEP;
           const nextY = Math.max(0, Math.min(maxY, dragStartY.current + gestureState.dy));
           position.setValue(nextY);
 
-          const targetIndex = Math.max(0, Math.min(order.length - 1, Math.round(nextY / ITEM_STEP)));
-          const currentIndex = order.indexOf(item.id);
+          const targetIndex = Math.max(0, Math.min(currentOrder.length - 1, Math.round(nextY / ITEM_STEP)));
+          const currentIndex = currentOrder.indexOf(item.id);
 
           if (targetIndex !== currentIndex) {
-            setOrder((current) => moveItem(current, currentIndex, targetIndex));
+            setOrder((current) => {
+              const next = moveItem(current, currentIndex, targetIndex);
+              orderRef.current = next;
+              return next;
+            });
           }
         },
         onPanResponderRelease: () => {
-          const finalIndex = order.indexOf(item.id);
-
+          const finalIndex = orderRef.current.indexOf(item.id);
           Animated.spring(position, {
             toValue: finalIndex * ITEM_STEP,
-            damping: 18,
-            stiffness: 190,
+            damping: 20,
+            stiffness: 220,
             mass: 0.9,
             useNativeDriver: false
-          }).start(() => {
-            setDraggingId(null);
-          });
+          }).start(() => setDraggingId(null));
         },
         onPanResponderTerminate: () => {
-          const finalIndex = order.indexOf(item.id);
-
+          const finalIndex = orderRef.current.indexOf(item.id);
           Animated.spring(position, {
             toValue: finalIndex * ITEM_STEP,
-            damping: 18,
-            stiffness: 190,
+            damping: 20,
+            stiffness: 220,
             mass: 0.9,
             useNativeDriver: false
-          }).start(() => {
-            setDraggingId(null);
-          });
+          }).start(() => setDraggingId(null));
         }
       }),
-    [item.id, order, position, setDraggingId, setOrder]
+    [item.id, orderRef, position, setDraggingId, setOrder]
   );
 
   return (
@@ -209,18 +211,23 @@ function SortablePriorityRow({
       {...panResponder.panHandlers}
       style={[
         styles.priorityRow,
-        {
-          top: position,
-          zIndex: isDragging ? 10 : 1
-        },
+        { top: position, zIndex: isDragging ? 10 : 1 },
         isDragging && styles.priorityRowDragging
       ]}
     >
-      <GripVertical size={28} color="#8F8F8F" />
-      <AppText color="#676767" style={styles.priorityLabel}>
-        {item.label}
-      </AppText>
+      <PriorityHandle />
+      <AppText style={styles.priorityLabel}>{item.label}</AppText>
     </Animated.View>
+  );
+}
+
+function PriorityHandle() {
+  return (
+    <View style={styles.handleGrid}>
+      {Array.from({ length: 6 }).map((_, index) => (
+        <View key={index} style={styles.handleDot} />
+      ))}
+    </View>
   );
 }
 
@@ -238,49 +245,22 @@ function moveItem(list: WellbeingPriority[], fromIndex: number, toIndex: number)
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#FFFFFF"
+    backgroundColor: "#FAFAFA"
   },
   screen: {
     flex: 1,
-    paddingHorizontal: 32,
-    paddingTop: 16
-  },
-  topRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-    marginBottom: 56
-  },
-  backButton: {
-    width: 28,
-    height: 28,
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  progressWrap: {
-    flex: 1,
-    maxWidth: 360
-  },
-  headerBlock: {
-    gap: 6,
-    marginBottom: 84
-  },
-  title: {
-    color: theme.colors.grey[1]
-  },
-  subtitle: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: "#676767"
+    backgroundColor: "#FAFAFA"
   },
   listSection: {
-    gap: 32,
+    paddingHorizontal: onboardingUi.horizontalPadding,
+    gap: 12,
     flex: 1
   },
   listLabel: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: "#676767"
+    fontFamily: "Inter",
+    fontSize: theme.typography.body.fontSize,
+    lineHeight: theme.typography.body.lineHeight,
+    color: "#5F5F5F"
   },
   listContainer: {
     position: "relative",
@@ -290,35 +270,49 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 0,
     right: 0,
-    height: ITEM_HEIGHT,
-    borderRadius: 18,
+    height: 44,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: theme.colors.grey[4],
-    backgroundColor: "#FFFFFF",
+    borderColor: "#F0F0F0",
+    backgroundColor: "#FDFDFD",
     flexDirection: "row",
     alignItems: "center",
-    gap: 14,
-    paddingHorizontal: 22
+    paddingHorizontal: 12,
+    gap: 8
   },
   priorityRowDragging: {
-    borderColor: "#F4B07D",
-    shadowColor: "#F4B07D",
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 3
+    borderColor: "#EA6A05",
+    shadowColor: "#EA6A05",
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 2
+  },
+  handleGrid: {
+    width: 11,
+    height: 18,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignContent: "flex-start",
+    columnGap: 2,
+    rowGap: 3
+  },
+  handleDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 4,
+    backgroundColor: "#8C8C8C"
   },
   priorityLabel: {
-    fontSize: 16,
-    lineHeight: 24
+    fontFamily: "InterMedium",
+    fontSize: theme.typography.body.fontSize,
+    lineHeight: theme.typography.body.lineHeight,
+    color: "#636363"
   },
   footer: {
     paddingTop: 20,
-    paddingBottom: 24
-  },
-  footerButton: {
-    height: 56,
-    borderRadius: 18,
-    backgroundColor: "#F8C396"
+    paddingBottom: 24,
+    paddingHorizontal: onboardingUi.horizontalPadding,
+    backgroundColor: "#FAFAFA"
   }
 });

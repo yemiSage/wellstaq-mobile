@@ -18,16 +18,15 @@ export function OnboardingProgressBar({
 
 const styles = StyleSheet.create({
   track: {
-    flex: 1,
-    flex: 1,
-    height: 4,
-    borderRadius: theme.radii.pill,
-    backgroundColor: "#E8E5EC",
+    width: 180,
+    height: 3,
+    borderRadius: 12,
+    backgroundColor: "#EBE7E9",
     overflow: "hidden"
   },
   fill: {
     height: "100%",
-    borderRadius: theme.radii.pill,
-    backgroundColor: theme.colors.grey[1]
+    borderRadius: 20,
+    backgroundColor: "#202020"
   }
 });

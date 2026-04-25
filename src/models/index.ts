@@ -40,12 +40,6 @@ export interface OtpVerificationResult {
   journey: UserJourneyState;
 }
 
-export interface ConsentPreferences {
-  acceptsTerms: boolean;
-  understandsHrBoundary: boolean;
-  locationTaggingEnabled: boolean;
-}
-
 export interface EmployeeProfile {
   id: string;
   fullName: string;

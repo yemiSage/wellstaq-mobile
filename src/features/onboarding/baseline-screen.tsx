@@ -1,78 +1,87 @@
-import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { PrimaryButton } from "@/components/ui/button";
-import { OnboardingProgressBar } from "@/components/ui/onboarding-progress";
+import { OnboardingHeader, OnboardingPrimaryCta, OnboardingTopBar, onboardingUi } from "@/components/domain/onboarding";
 import { AppText } from "@/components/ui/text";
 import { onboardingRepository } from "@/services/mock/repositories";
 import { theme } from "@/theme";
 
+type StepKey = "mood" | "stressLevel" | "energyLevel" | "workLifeBalance";
+
+type StepOption = {
+  label: string;
+  value: number;
+  emoji: string;
+};
+
+type BaselineStep = {
+  key: StepKey;
+  question: string;
+  options: StepOption[];
+};
+
+type BaselineSelections = Record<StepKey, { value?: number; label?: string; reason?: string }>;
+
 const SHARED_REASONS = ["Work", "Family", "Breakup", "Sleep", "Social", "Food", "Love", "Exams", "+ Other"] as const;
 
-const BASELINE_STEPS = [
+const BASELINE_STEPS: BaselineStep[] = [
   {
     key: "mood",
-    question: "What’s your mood?",
+    question: "What's your mood?",
     options: [
-      { emoji: "😡", label: "Angry", value: 1 },
+      { emoji: "😡", label: "Amazed", value: 1 },
       { emoji: "😰", label: "Stressed", value: 2 },
       { emoji: "😮‍💨", label: "Tired", value: 3 },
       { emoji: "🤗", label: "Excited", value: 5 },
-      { emoji: "☺️", label: "Calm", value: 4 },
-      { emoji: "😈", label: "Irritated", value: 2 }
+      { emoji: "☺️", label: "Amazed", value: 4 },
+      { emoji: "😈", label: "Infuriated", value: 1.5 }
     ]
   },
   {
     key: "stressLevel",
-    question: "What’s your stress level?",
+    question: "What's your stress level?",
     options: [
-      { emoji: "😌", label: "Relaxed", value: 1 },
-      { emoji: "🙂", label: "Steady", value: 2 },
-      { emoji: "😮‍💨", label: "Tense", value: 3 },
-      { emoji: "😵", label: "Pressured", value: 4 },
-      { emoji: "😰", label: "Stressed", value: 4 },
-      { emoji: "🤯", label: "Overloaded", value: 5 }
+      { emoji: "😡", label: "Amazed", value: 1 },
+      { emoji: "😰", label: "Stressed", value: 2 },
+      { emoji: "😮‍💨", label: "Tired", value: 3 },
+      { emoji: "🤗", label: "Excited", value: 4 },
+      { emoji: "☺️", label: "Amazed", value: 2.5 },
+      { emoji: "😈", label: "Infuriated", value: 5 }
     ]
   },
   {
     key: "energyLevel",
-    question: "What’s your energy levels?",
+    question: "What's your energy levels?",
     options: [
-      { emoji: "🔋", label: "Charged", value: 5 },
-      { emoji: "✨", label: "Upbeat", value: 4 },
-      { emoji: "🌤️", label: "Okay", value: 3 },
-      { emoji: "😴", label: "Sleepy", value: 2 },
-      { emoji: "🥱", label: "Tired", value: 2 },
-      { emoji: "🪫", label: "Drained", value: 1 }
+      { emoji: "😡", label: "Amazed", value: 1 },
+      { emoji: "😰", label: "Stressed", value: 2 },
+      { emoji: "😮‍💨", label: "Tired", value: 2.5 },
+      { emoji: "🤗", label: "Excited", value: 5 },
+      { emoji: "☺️", label: "Amazed", value: 4 },
+      { emoji: "😈", label: "Infuriated", value: 1.5 }
     ]
   },
   {
     key: "workLifeBalance",
     question: "Describe your work-life balance?",
     options: [
-      { emoji: "🧘", label: "Balanced", value: 5 },
-      { emoji: "🙂", label: "Manageable", value: 4 },
-      { emoji: "😐", label: "Uneven", value: 3 },
-      { emoji: "🏃", label: "Busy", value: 2 },
-      { emoji: "😵‍💫", label: "Overwhelmed", value: 2 },
-      { emoji: "🚨", label: "Burning out", value: 1 }
+      { emoji: "😡", label: "Amazed", value: 1 },
+      { emoji: "😰", label: "Stressed", value: 2 },
+      { emoji: "😮‍💨", label: "Tired", value: 3 },
+      { emoji: "🤗", label: "Excited", value: 5 },
+      { emoji: "☺️", label: "Amazed", value: 4 },
+      { emoji: "😈", label: "Infuriated", value: 1.5 }
     ]
   }
-] as const;
-
-type StepKey = (typeof BASELINE_STEPS)[number]["key"];
-
-type BaselineSelections = Record<StepKey, { value?: number; reasons: string[] }>;
+];
 
 const INITIAL_SELECTIONS: BaselineSelections = {
-  mood: { reasons: [] },
-  stressLevel: { reasons: [] },
-  energyLevel: { reasons: [] },
-  workLifeBalance: { reasons: [] }
+  mood: {},
+  stressLevel: {},
+  energyLevel: {},
+  workLifeBalance: {}
 };
 
 export function BaselineScreen() {
@@ -81,17 +90,15 @@ export function BaselineScreen() {
 
   const activeStep = BASELINE_STEPS[stepIndex];
   const selection = selections[activeStep.key];
-  const isLastStep = stepIndex === BASELINE_STEPS.length - 1;
+  const selectedLabel = selection.label?.toLowerCase();
   const canContinue = typeof selection.value === "number";
-
-  const selectedReasons = useMemo(() => selection.reasons, [selection.reasons]);
 
   async function handleContinue() {
     if (!canContinue) {
       return;
     }
 
-    if (!isLastStep) {
+    if (stepIndex < BASELINE_STEPS.length - 1) {
       setStepIndex((current) => current + 1);
       return;
     }
@@ -119,94 +126,75 @@ export function BaselineScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.screen}>
-        <View style={styles.topRow}>
-          <Pressable accessibilityRole="button" onPress={handleBack} style={styles.backButton}>
-            <ChevronLeft size={28} color={theme.colors.grey[1]} />
-          </Pressable>
-          <View style={styles.progressWrap}>
-            <OnboardingProgressBar segments={3} activeSegments={1} />
-          </View>
-        </View>
+        <OnboardingTopBar progress={0.755} onBack={handleBack} />
 
         <ScrollView bounces={false} showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-          <View style={styles.headerBlock}>
-            <AppText variant="h3" weight="bold" style={styles.title}>
-              Your starting wellbeing baseline
-            </AppText>
-            <AppText color="#676767" style={styles.subtitle}>
-              Select the emoji that reflect the most, how you are feeling right now
-            </AppText>
-          </View>
+          <OnboardingHeader
+            title="Your starting wellbeing baseline"
+            subtitle="Select the emoji that reflect the most, how you are feeling right now"
+          />
 
-          <LinearGradient colors={["#FFF7EF", "#F5F0FF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.card}>
-            <AppText variant="h4" weight="bold" style={styles.question}>
-              {activeStep.question}
-            </AppText>
+          <View style={styles.card}>
+            <AppText style={styles.question}>{activeStep.question}</AppText>
 
             <View style={styles.optionGrid}>
-              {activeStep.options.map((option) => {
-                const isActive = selection.value === option.value;
+              {activeStep.options.map((option, index) => {
+                const isActive = selection.value === option.value && selection.label === option.label;
 
                 return (
                   <Pressable
-                    key={`${activeStep.key}-${option.label}`}
+                    key={`${activeStep.key}-${option.label}-${index}`}
                     accessibilityRole="button"
                     onPress={() =>
                       setSelections((current) => ({
                         ...current,
                         [activeStep.key]: {
                           ...current[activeStep.key],
-                          value: option.value
+                          value: option.value,
+                          label: option.label
                         }
                       }))
                     }
                     style={({ pressed }) => [styles.optionItem, pressed && styles.optionPressed]}
                   >
-                    <View style={[styles.emojiCircle, isActive && styles.emojiCircleActive]}>
-                      <AppText style={styles.emoji}>{option.emoji}</AppText>
+                    <View style={[styles.emojiShell, isActive && styles.emojiShellActive]}>
+                      <View style={styles.emojiWrap}>
+                        <AppText style={styles.emoji}>{option.emoji}</AppText>
+                      </View>
                     </View>
-                    <AppText color="#676767" style={styles.optionLabel}>
+                    <AppText numberOfLines={1} ellipsizeMode="clip" style={[styles.optionLabel, isActive && styles.optionLabelActive]}>
                       {option.label}
                     </AppText>
                   </Pressable>
                 );
               })}
             </View>
-          </LinearGradient>
+          </View>
 
           <View style={styles.reasonBlock}>
-            <AppText variant="h4" weight="bold" style={styles.reasonTitle}>
-              What reason make you feel this way?
+            <AppText style={styles.reasonTitle}>
+              {selectedLabel ? `What reason makes you feel ${selectedLabel} today?` : "What reason makes you feel this way?"}
             </AppText>
             <View style={styles.reasonWrap}>
               {SHARED_REASONS.map((reason) => {
-                const active = selectedReasons.includes(reason);
+                const active = selection.reason === reason;
 
                 return (
                   <Pressable
                     key={`${activeStep.key}-${reason}`}
                     accessibilityRole="button"
                     onPress={() =>
-                      setSelections((current) => {
-                        const currentReasons = current[activeStep.key].reasons;
-                        const nextReasons = currentReasons.includes(reason)
-                          ? currentReasons.filter((item) => item !== reason)
-                          : [...currentReasons, reason];
-
-                        return {
-                          ...current,
-                          [activeStep.key]: {
-                            ...current[activeStep.key],
-                            reasons: nextReasons
-                          }
-                        };
-                      })
+                      setSelections((current) => ({
+                        ...current,
+                        [activeStep.key]: {
+                          ...current[activeStep.key],
+                          reason
+                        }
+                      }))
                     }
                     style={({ pressed }) => [styles.reasonChip, active && styles.reasonChipActive, pressed && styles.optionPressed]}
                   >
-                    <AppText color={active ? theme.colors.primary[1] : "#676767"} style={styles.reasonChipText}>
-                      {reason}
-                    </AppText>
+                    <AppText style={[styles.reasonChipText, active && styles.reasonChipTextActive]}>{reason}</AppText>
                   </Pressable>
                 );
               })}
@@ -215,7 +203,7 @@ export function BaselineScreen() {
         </ScrollView>
 
         <View style={styles.footer}>
-          <PrimaryButton label="Continue" onPress={() => void handleContinue()} disabled={!canContinue} style={styles.footerButton} />
+          <OnboardingPrimaryCta label="Continue" onPress={() => void handleContinue()} disabled={!canContinue} />
         </View>
       </View>
     </SafeAreaView>
@@ -225,99 +213,94 @@ export function BaselineScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#FFFFFF"
+    backgroundColor: "#FAFAFA"
   },
   screen: {
     flex: 1,
-    paddingHorizontal: 32,
-    paddingTop: 16
-  },
-  topRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-    marginBottom: 56
-  },
-  backButton: {
-    width: 28,
-    height: 28,
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  progressWrap: {
-    flex: 1,
-    maxWidth: 360
+    backgroundColor: "#FAFAFA"
   },
   content: {
     paddingBottom: 24
   },
-  headerBlock: {
-    gap: 6,
-    marginBottom: 36
-  },
-  title: {
-    color: theme.colors.grey[1]
-  },
-  subtitle: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: "#676767"
-  },
   card: {
-    borderRadius: 24,
-    paddingHorizontal: 24,
-    paddingTop: 28,
-    paddingBottom: 24,
-    marginBottom: 36
+    height: 242,
+    marginHorizontal: onboardingUi.horizontalPadding,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 36,
+    backgroundColor: "#FFFFFF"
   },
   question: {
-    color: theme.colors.grey[1],
-    marginBottom: 28
+    fontFamily: "InterSemiBold",
+    fontSize: 16,
+    lineHeight: 24,
+    color: "#202020",
+    marginBottom: 20
   },
   optionGrid: {
+    width: "100%",
     flexDirection: "row",
     flexWrap: "wrap",
-    rowGap: 28,
-    columnGap: 22
+    alignItems: "center",
+    alignContent: "flex-start",
+    justifyContent: "flex-start",
+    columnGap: 34,
+    rowGap: 20
   },
   optionItem: {
-    width: "22%",
-    minWidth: 92,
+    width: 55,
+    height: 77,
     alignItems: "center",
-    gap: 12
+    gap: 2
   },
-  emojiCircle: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1.5,
-    borderColor: "rgba(255,255,255,0.88)",
+  emojiShell: {
+    width: 54.92,
+    height: 55,
+    borderRadius: 32,
+    borderWidth: 1,
+    borderColor: "#E8E8E8",
+    backgroundColor: "#F6F7F6",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 10
+  },
+  emojiWrap: {
+    width: 34.92,
+    height: 34.92,
     alignItems: "center",
     justifyContent: "center"
   },
-  emojiCircleActive: {
-    borderColor: "#F4B07D",
-    shadowColor: "#F4B07D",
-    shadowOpacity: 0.14,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 2
+  emojiShellActive: {
+    borderColor: theme.colors.primary[1],
+    backgroundColor: theme.colors.primary[4]
   },
   emoji: {
-    fontSize: 38,
-    lineHeight: 42
+    fontSize: 32,
+    lineHeight: 35,
+    textAlign: "center",
+    textAlignVertical: "center",
+    includeFontPadding: false
   },
   optionLabel: {
-    fontSize: 14,
-    lineHeight: 20,
-    textAlign: "center"
+    fontFamily: "InterMedium",
+    fontSize: theme.typography.body.fontSize,
+    lineHeight: theme.typography.body.lineHeight,
+    color: "#5F5F5F",
+    textAlign: "center",
+    width: 70
+  },
+  optionLabelActive: {
+    color: theme.colors.primary[1]
   },
   reasonBlock: {
+    paddingHorizontal: onboardingUi.horizontalPadding,
     gap: 20
   },
   reasonTitle: {
-    color: theme.colors.grey[1]
+    fontFamily: "BricolageGrotesqueBold",
+    fontSize: 16,
+    lineHeight: 24,
+    color: "#202020"
   },
   reasonWrap: {
     flexDirection: "row",
@@ -325,31 +308,33 @@ const styles = StyleSheet.create({
     gap: 16
   },
   reasonChip: {
-    minHeight: 48,
-    borderRadius: 24,
-    borderWidth: 1.5,
-    borderColor: "#6E6E6E",
-    paddingHorizontal: 24,
+    height: 40,
+    borderRadius: 200,
+    borderWidth: 1,
+    borderColor: "#636363",
+    paddingHorizontal: 12,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#FFFFFF"
   },
   reasonChipActive: {
-    borderColor: "#F4B07D",
-    backgroundColor: "#FFF6EF"
+    borderColor: theme.colors.primary[1],
+    backgroundColor: theme.colors.primary[4]
   },
   reasonChipText: {
-    fontSize: 14,
-    lineHeight: 20
+    fontFamily: "Inter",
+    fontSize: theme.typography.body.fontSize,
+    lineHeight: theme.typography.body.lineHeight,
+    color: "#5F5F5F"
+  },
+  reasonChipTextActive: {
+    color: theme.colors.primary[1]
   },
   footer: {
     paddingTop: 20,
-    paddingBottom: 24
-  },
-  footerButton: {
-    height: 56,
-    borderRadius: 18,
-    backgroundColor: "#F8C396"
+    paddingBottom: 24,
+    paddingHorizontal: onboardingUi.horizontalPadding,
+    backgroundColor: "#FAFAFA"
   },
   optionPressed: {
     opacity: 0.88

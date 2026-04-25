@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useMemo, useRef } from "react";
 import {
   Animated,
+  Keyboard,
   Modal,
   PanResponder,
   Pressable,
@@ -126,44 +127,49 @@ export function SelectionSheet({
         </Animated.View>
         <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
           <SafeAreaView edges={["bottom"]}>
-            <View {...panResponder.panHandlers} style={styles.handleWrap}>
-              <View style={styles.handle} />
-            </View>
-            <View style={styles.content}>
-              <AppText variant="h4" weight="bold" style={styles.title}>
-                {title}
-              </AppText>
-              <View style={styles.searchField}>
-                <TextInput
-                  value={searchValue}
-                  onChangeText={onSearchChange}
-                  placeholder={searchPlaceholder}
-                  placeholderTextColor="#8F8F8F"
-                  style={styles.searchInput}
-                />
-                <Search size={24} color="#676767" />
+            <Pressable style={styles.sheetInner} onPress={Keyboard.dismiss}>
+              <View style={styles.handleWrap} {...panResponder.panHandlers}>
+                <View style={styles.handle} />
               </View>
-              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.list}>
-                {options.map((option) => {
-                  const active = option.value === selectedValue;
-                  return (
-                    <Pressable
-                      key={option.value}
-                      onPress={() => {
-                        onSelect(option.value);
-                        closeSheet();
-                      }}
-                      style={({ pressed }) => [styles.optionRow, active && styles.optionActive, pressed && styles.optionPressed]}
-                    >
-                      {option.leading ? <View style={styles.leading}>{option.leading}</View> : null}
-                      <AppText style={styles.optionLabel} color="#676767">
-                        {option.label}
-                      </AppText>
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
-            </View>
+              <View style={styles.content}>
+                <AppText variant="h4" weight="bold" style={styles.title}>
+                  {title}
+                </AppText>
+                <View style={styles.searchField}>
+                  <TextInput
+                    value={searchValue}
+                    onChangeText={onSearchChange}
+                    placeholder={searchPlaceholder}
+                    placeholderTextColor="#8F8F8F"
+                    style={styles.searchInput}
+                  />
+                  <Search size={24} color="#676767" />
+                </View>
+                <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={styles.list}>
+                  {options.map((option) => {
+                    const active = option.value === selectedValue;
+                    return (
+                      <Pressable
+                        key={option.value}
+                        onPress={() => {
+                          onSelect(option.value);
+                          closeSheet();
+                        }}
+                        style={({ pressed }) => [styles.optionRow, active && styles.optionActive, pressed && styles.optionPressed]}
+                      >
+                        {option.leading ? <View style={styles.leading}>{option.leading}</View> : null}
+                        <AppText style={styles.optionLabel} color="#676767">
+                          {option.label}
+                        </AppText>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+              <View style={styles.homeIndicatorWrap} {...panResponder.panHandlers}>
+                <View style={styles.homeIndicator} />
+              </View>
+            </Pressable>
           </SafeAreaView>
         </Animated.View>
       </View>
@@ -182,55 +188,75 @@ const styles = StyleSheet.create({
   },
   sheet: {
     backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     maxHeight: "84%"
+  },
+  sheetInner: {
+    flexShrink: 1
   },
   handleWrap: {
     alignItems: "center",
-    paddingTop: theme.spacing.sm,
-    paddingBottom: theme.spacing.md
+    paddingVertical: 8
   },
   handle: {
-    width: 100,
-    height: 8,
-    borderRadius: theme.radii.pill,
-    backgroundColor: "#E0E0E0"
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#D1D5DB"
   },
   content: {
-    paddingHorizontal: theme.spacing.xl,
-    paddingBottom: theme.spacing.lg
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 12
   },
   title: {
-    marginBottom: theme.spacing.xl
+    marginBottom: 20,
+    fontFamily: "BricolageGrotesqueBold",
+    fontSize: 20,
+    lineHeight: 30,
+    color: "#202020"
   },
   searchField: {
-    minHeight: 56,
-    borderRadius: theme.radii.lg,
-    borderWidth: 1,
-    borderColor: theme.colors.grey[4],
-    paddingHorizontal: theme.spacing.lg,
+    height: 44,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: "#EAEAEA",
+    backgroundColor: "#F8F8F8",
+    paddingHorizontal: 12,
     flexDirection: "row",
     alignItems: "center",
-    gap: theme.spacing.md,
-    marginBottom: theme.spacing.xl
+    gap: 10,
+    marginBottom: 20
   },
   searchInput: {
     flex: 1,
-    height: 56,
-    fontFamily: "Inter",
-    fontSize: 14,
-    lineHeight: 20,
+    height: 20,
+    fontFamily: "InterMedium",
+    fontSize: 16,
+    lineHeight: 24,
     color: theme.colors.grey[1]
   },
   list: {
-    paddingBottom: theme.spacing["3xl"]
+    paddingBottom: 24,
+    gap: 6
+  },
+  homeIndicatorWrap: {
+    alignItems: "center",
+    paddingTop: 6,
+    paddingBottom: 8
+  },
+  homeIndicator: {
+    width: 134,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: "#000000"
   },
   optionRow: {
-    minHeight: 72,
+    minHeight: 44,
     flexDirection: "row",
     alignItems: "center",
-    gap: theme.spacing.lg
+    gap: 16
   },
   optionActive: {
     backgroundColor: "#FFF7F1",
@@ -244,6 +270,7 @@ const styles = StyleSheet.create({
     alignItems: "center"
   },
   optionLabel: {
+    fontFamily: "InterMedium",
     fontSize: 16,
     lineHeight: 24
   }

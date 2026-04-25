@@ -21,7 +21,6 @@ export interface OnboardingRepository {
   saveProfileStep(profile: Partial<EmployeeProfile>): Promise<EmployeeProfile>;
   saveBaselineStep(baseline: BaselineAssessment): Promise<BaselineAssessment>;
   savePriorities(priorities: WellbeingPriority[]): Promise<WellbeingPriority[]>;
-  completePrivacyStep(): Promise<void>;
 }
 
 export interface HomeRepository {

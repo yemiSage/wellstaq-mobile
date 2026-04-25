@@ -86,7 +86,7 @@ export const typography = {
   h4: { fontSize: 24, lineHeight: 32, letterSpacing: 0 },
   h5: { fontSize: 20, lineHeight: 30, letterSpacing: 0 },
   subheading: { fontSize: 16, lineHeight: 24, letterSpacing: 0 },
-  body: { fontSize: 14, lineHeight: 20, letterSpacing: 0 },
+  body: { fontSize: 15, lineHeight: 22.5, letterSpacing: 0 },
   caption: { fontSize: 12, lineHeight: 18, letterSpacing: 0 }
 } as const;
 

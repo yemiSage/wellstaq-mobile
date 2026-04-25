@@ -167,7 +167,9 @@ export function AuthScreenFrame({ children }: { children: ReactNode }) {
 export function BrandHero({ width = 138, height = 38 }: { width?: number; height?: number }) {
   return (
     <View style={styles.brandHero}>
-      <WellstaqLogo width={width} height={height} />
+      <View style={{ width, height }}>
+        <WellstaqLogo width={width} height={height} />
+      </View>
     </View>
   );
 }
@@ -355,7 +357,7 @@ const styles = StyleSheet.create({
     lineHeight: authStyleGuide.bodyText.lineHeight
   },
   fieldGroup: {
-    gap: 6,
+    gap: 4,
     alignSelf: "stretch"
   },
   labelRow: {
@@ -364,27 +366,31 @@ const styles = StyleSheet.create({
     gap: 2
   },
   label: {
-    fontSize: 14,
-    lineHeight: 20
+    fontSize: 16,
+    lineHeight: 24
   },
   inputShell: {
     height: 44,
     maxHeight: 44,
     borderRadius: 8,
-    borderWidth: 1.5,
-    borderColor: theme.colors.grey[4],
-    backgroundColor: theme.colors.grey[5],
+    borderWidth: 1,
+    borderColor: "#EAEAEA",
+    backgroundColor: "#F8F8F8",
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: theme.spacing.lg
+    paddingHorizontal: 12,
+    gap: 10
   },
   input: {
     height: 44,
     flex: 1,
     fontFamily: "Inter",
-    fontSize: 14,
-    lineHeight: 20,
-    color: theme.colors.grey[1]
+    fontSize: theme.typography.body.fontSize,
+    lineHeight: theme.typography.body.lineHeight,
+    color: "#7D7D7D",
+    paddingVertical: 0,
+    textAlignVertical: "center",
+    includeFontPadding: false
   },
   trailingWrap: {
     minWidth: 62,
@@ -411,8 +417,8 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary[4]
   },
   primaryButtonText: {
-    fontSize: 14,
-    lineHeight: 20
+    fontSize: theme.typography.body.fontSize,
+    lineHeight: theme.typography.body.lineHeight
   },
   socialButton: {
     width: 65,

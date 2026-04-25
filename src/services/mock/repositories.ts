@@ -119,9 +119,6 @@ export const onboardingRepository: OnboardingRepository = {
     await delay();
     prioritiesState = priorities;
     return prioritiesState;
-  },
-  async completePrivacyStep() {
-    await delay();
   }
 };
 
