@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
-import { Bell, CalendarDays, ChevronDown } from "lucide-react-native";
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Bell, CalendarDays } from "lucide-react-native";
 import { Image, Modal, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import { AppScreen } from "@/components/ui/app-screen";
 import { AppText } from "@/components/ui/text";
 import { useSessionStore } from "@/state/session-store";
 
-const avatarImage = "https://www.figma.com/api/mcp/asset/08916fc5-8c52-4a3d-8717-cc5c33e3a1a6";
+const avatarImage = require("@/assets/images/avatar.png");
 const eventImage = "https://www.figma.com/api/mcp/asset/87a65850-8121-4387-85e2-dd6da5b3c143";
 
 const SUMMARY_ITEMS = [
@@ -60,24 +61,19 @@ function formatDisplayDate(date: Date) {
   return `${weekday}, ${month} ${day}${getOrdinalSuffix(day)} ${date.getFullYear()}`;
 }
 
-function buildPreviousDays(count = 14) {
-  const today = new Date();
-  today.setHours(12, 0, 0, 0);
-
-  return Array.from({ length: count }, (_, index) => {
-    const date = new Date(today);
-    date.setDate(today.getDate() - index - 1);
-    return date;
-  });
-}
-
 export function HomeScreen() {
   const email = useSessionStore((state) => state.session?.email);
   const firstName = email?.split("@")[0]?.split(/[._-]/)[0] || "Yemi";
   const displayName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
-  const previousDays = useMemo(() => buildPreviousDays(), []);
-  const [selectedDate, setSelectedDate] = useState(previousDays[0]);
-  const [isDateSheetVisible, setIsDateSheetVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const onChangeDate = (event: any, date?: Date) => {
+    setShowDatePicker(false);
+    if (date) {
+      setSelectedDate(date);
+    }
+  };
 
   return (
     <AppScreen padded={false} scroll={false}>
@@ -106,7 +102,7 @@ export function HomeScreen() {
                 <CalendarDays size={18} color="#636363" strokeWidth={1.6} />
                 <AppText style={styles.dateText}>{formatDisplayDate(selectedDate)}</AppText>
               </View>
-              <Pressable onPress={() => setIsDateSheetVisible(true)} hitSlop={8}>
+              <Pressable onPress={() => setShowDatePicker(true)} hitSlop={8}>
                 <AppText style={styles.editText}>Edit</AppText>
               </Pressable>
             </View>
@@ -124,7 +120,26 @@ export function HomeScreen() {
               ))}
             </View>
 
-            <ChevronDown size={18} color="#202020" strokeWidth={2} style={styles.downIcon} />
+            <View style={styles.wellnessScoreBlock}>
+              <View style={styles.wellnessHeader}>
+                <AppText style={styles.wellnessTitle}>Overall wellness score</AppText>
+                <AppText style={styles.wellnessValue}>98%</AppText>
+              </View>
+
+              <View style={styles.progressBar}>
+                {Array.from({ length: 15 }).map((_, i) => (
+                  <View key={`seg1-${i}`} style={[styles.progressTick, { backgroundColor: "#DE5A3E" }]} />
+                ))}
+                {Array.from({ length: 15 }).map((_, i) => (
+                  <View key={`seg2-${i}`} style={[styles.progressTick, { backgroundColor: "#F7CFA1" }]} />
+                ))}
+                {Array.from({ length: 28 }).map((_, i) => (
+                  <View key={`seg3-${i}`} style={[styles.progressTick, { backgroundColor: "#5EBA7D" }]} />
+                ))}
+              </View>
+
+              <AppText style={styles.wellnessFooterText}>Doing so great</AppText>
+            </View>
           </View>
         </View>
 
@@ -166,46 +181,15 @@ export function HomeScreen() {
           </ScrollView>
         </View>
 
-        <Modal transparent visible={isDateSheetVisible} animationType="fade" onRequestClose={() => setIsDateSheetVisible(false)}>
-          <View style={styles.dateSheetRoot}>
-            <Pressable style={styles.dateSheetBackdrop} onPress={() => setIsDateSheetVisible(false)} />
-            <View style={styles.dateSheet}>
-              <View style={styles.dateSheetHandleWrap}>
-                <View style={styles.dateSheetHandle} />
-              </View>
-
-              <View style={styles.dateSheetContent}>
-                <AppText style={styles.dateSheetTitle}>Select previous day</AppText>
-                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.dateList}>
-                  {previousDays.map((date) => {
-                    const value = date.toISOString();
-                    const isActive = value === selectedDate.toISOString();
-
-                    return (
-                      <Pressable
-                        key={value}
-                        onPress={() => {
-                          setSelectedDate(date);
-                          setIsDateSheetVisible(false);
-                        }}
-                        style={({ pressed }) => [styles.dateOption, isActive && styles.dateOptionActive, pressed && styles.dateOptionPressed]}
-                      >
-                        <CalendarDays size={18} color={isActive ? "#EA6A05" : "#636363"} strokeWidth={1.8} />
-                        <AppText style={[styles.dateOptionText, isActive && styles.dateOptionTextActive]}>
-                          {formatDisplayDate(date)}
-                        </AppText>
-                      </Pressable>
-                    );
-                  })}
-                </ScrollView>
-              </View>
-
-              <View style={styles.dateSheetIndicatorWrap}>
-                <View style={styles.dateSheetIndicator} />
-              </View>
-            </View>
-          </View>
-        </Modal>
+        {showDatePicker && (
+          <DateTimePicker
+            value={selectedDate}
+            mode="date"
+            display="default"
+            onChange={onChangeDate}
+            maximumDate={new Date()}
+          />
+        )}
       </View>
     </AppScreen>
   );
@@ -344,6 +328,44 @@ const styles = StyleSheet.create({
     color: "#5F5F5F",
     textAlign: "center"
   },
+  wellnessScoreBlock: {
+    width: "100%",
+    marginTop: 16,
+    gap: 8,
+  },
+  wellnessHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  wellnessTitle: {
+    fontFamily: "InterSemiBold",
+    fontSize: 16,
+    lineHeight: 24,
+    color: "#5F5F5F",
+  },
+  wellnessValue: {
+    fontFamily: "InterSemiBold",
+    fontSize: 16,
+    lineHeight: 24,
+    color: "#5F5F5F",
+  },
+  progressBar: {
+    flexDirection: "row",
+    width: "100%",
+    height: 16,
+    gap: 2,
+  },
+  progressTick: {
+    flex: 1,
+    borderRadius: 2,
+  },
+  wellnessFooterText: {
+    fontFamily: "InterMedium",
+    fontSize: 14,
+    lineHeight: 21,
+    color: "#5F5F5F",
+  },
   downIcon: {
     marginTop: 4,
     width: 18,
@@ -451,77 +473,10 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     color: "#636363"
   },
-  dateSheetRoot: {
-    flex: 1,
-    justifyContent: "flex-end"
-  },
-  dateSheetBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(17, 17, 17, 0.18)"
-  },
-  dateSheet: {
-    maxHeight: "72%",
-    backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20
-  },
-  dateSheetHandleWrap: {
-    alignItems: "center",
-    paddingVertical: 8
-  },
-  dateSheetHandle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#D1D5DB"
-  },
-  dateSheetContent: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 12
-  },
-  dateSheetTitle: {
-    fontFamily: "InterSemiBold",
-    fontSize: 20,
-    lineHeight: 30,
-    color: "#202020",
-    marginBottom: 16
-  },
-  dateList: {
-    gap: 8,
-    paddingBottom: 16
-  },
-  dateOption: {
-    minHeight: 44,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12
-  },
-  dateOptionActive: {
-    backgroundColor: "rgba(234, 106, 5, 0.1)"
-  },
-  dateOptionPressed: {
-    opacity: 0.82
-  },
-  dateOptionText: {
+  wellnessFooterText: {
     fontFamily: "InterMedium",
-    fontSize: 16,
-    lineHeight: 24,
-    color: "#636363"
-  },
-  dateOptionTextActive: {
-    color: "#EA6A05"
-  },
-  dateSheetIndicatorWrap: {
-    alignItems: "center",
-    paddingBottom: 8
-  },
-  dateSheetIndicator: {
-    width: 134,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: "#000000"
+    fontSize: 14,
+    lineHeight: 21,
+    color: "#5F5F5F",
   }
 });
