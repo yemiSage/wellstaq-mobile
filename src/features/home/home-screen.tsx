@@ -8,7 +8,6 @@ import { AppText } from "@/components/ui/text";
 import { useSessionStore } from "@/state/session-store";
 
 const avatarImage = require("@/assets/images/avatar.png");
-const eventImage = "https://www.figma.com/api/mcp/asset/87a65850-8121-4387-85e2-dd6da5b3c143";
 
 const SUMMARY_ITEMS = [
   { label: "High Energy", emoji: "\u26A1" },
@@ -32,14 +31,16 @@ const EVENTS = [
     title: "Mindful living session",
     date: "Thurs, Nov 14th 2024",
     location: "Online, Remote",
-    cta: "32 slots left"
+    cta: "32 slots left",
+    image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=600&auto=format&fit=crop"
   },
   {
     id: "guided-meditation",
     title: "Guided meditation",
     date: "Fri, Dec 1st 2024",
     location: "Online, Mobile",
-    cta: "12 slots left"
+    cta: "12 slots left",
+    image: "https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?q=80&w=600&auto=format&fit=crop"
   }
 ] as const;
 
@@ -72,13 +73,16 @@ function formatDisplayDate(date: Date) {
 
 export function HomeScreen() {
   const email = useSessionStore((state) => state.session?.email);
-  const firstName = email?.split("@")[0]?.split(/[._-]/)[0] || "Yemi";
+  const nameWithoutNumbers = email?.split("@")[0]?.replace(/[0-9]/g, "");
+  const firstName = nameWithoutNumbers?.split(/[._-]/)[0] || "Yemi";
   const displayName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
 
+  const currentHour = new Date().getHours();
+  const timeGreeting = currentHour < 12 ? "Good morning" : currentHour < 18 ? "Good afternoon" : "Good evening";
+
   const onChangeDate = (event: any, date?: Date) => {
-    setShowDatePicker(false);
     if (date) {
       setSelectedDate(date);
     }
@@ -87,64 +91,66 @@ export function HomeScreen() {
   return (
     <AppScreen padded={false} scroll={false}>
       <View style={styles.screen}>
-        <View style={styles.topPanel}>
+        <View style={styles.headerContainer}>
           <View style={styles.header}>
             <View style={styles.avatar}>
               <Image source={avatarImage} style={styles.avatarImage} />
             </View>
 
             <View style={styles.greetingBlock}>
-              <AppText style={styles.greeting}>
-                Hello, <AppText style={styles.name}>{displayName}</AppText> {"\u{1F44B}"}
-              </AppText>
+              <AppText style={styles.greeting}>{timeGreeting} 👋,</AppText>
+              <AppText style={styles.name}>{displayName}</AppText>
             </View>
 
             <View style={styles.bellWrap}>
               <Bell size={24} color="#202020" strokeWidth={1.8} />
             </View>
           </View>
+        </View>
 
-          <View style={styles.summaryCard}>
-            <Pressable style={styles.dateRowCentered} onPress={() => setShowDatePicker(true)} hitSlop={8}>
-              <AppText style={styles.dateTextCentered}>{formatDisplayDate(selectedDate)}</AppText>
-              <ChevronDown size={20} color="#636363" strokeWidth={2} />
-            </Pressable>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+          <View style={styles.summaryContainer}>
+            <View style={styles.summaryCard}>
+              <Pressable style={styles.dateRowCentered} onPress={() => setShowDatePicker(true)} hitSlop={8}>
+                <AppText style={styles.dateTextCentered}>{formatDisplayDate(selectedDate)}</AppText>
+                <ChevronDown size={20} color="#636363" strokeWidth={2} />
+              </Pressable>
 
-            <AppText style={styles.summaryTextLarge}>Here's the summary of how you are doing this week</AppText>
+              <AppText style={styles.summaryTextLarge}>Here's the summary of how you are doing this week</AppText>
 
-            <View style={styles.summaryItems}>
-              {SUMMARY_ITEMS.map((item, index) => (
-                <View key={item.label} style={styles.summaryItem}>
-                  <View style={[styles.summaryEmojiCircle, { backgroundColor: EMOJI_BG_COLORS[index % EMOJI_BG_COLORS.length] }]}>
-                    <AppText style={styles.summaryEmoji}>{item.emoji}</AppText>
+              <View style={styles.summaryItems}>
+                {SUMMARY_ITEMS.map((item, index) => (
+                  <View key={item.label} style={styles.summaryItem}>
+                    <View style={[styles.summaryEmojiCircle, { backgroundColor: EMOJI_BG_COLORS[index % EMOJI_BG_COLORS.length] }]}>
+                      <AppText style={styles.summaryEmoji}>{item.emoji}</AppText>
+                    </View>
+                    <AppText style={styles.summaryLabel}>{item.label}</AppText>
                   </View>
-                  <AppText style={styles.summaryLabel}>{item.label}</AppText>
+                ))}
+              </View>
+
+              <View style={styles.wellnessScoreBlock}>
+                <View style={styles.wellnessHeader}>
+                  <AppText style={styles.wellnessTitle}>Overall wellness score</AppText>
+                  <AppText style={styles.wellnessValue}>98%</AppText>
                 </View>
-              ))}
-            </View>
 
-            <View style={styles.wellnessScoreBlock}>
-              <View style={styles.wellnessHeader}>
-                <AppText style={styles.wellnessTitle}>Overall wellness score</AppText>
-                <AppText style={styles.wellnessValue}>98%</AppText>
+                <View style={styles.progressBar}>
+                  {Array.from({ length: 15 }).map((_, i) => (
+                    <View key={`seg1-${i}`} style={[styles.progressTick, { backgroundColor: "#DE5A3E" }]} />
+                  ))}
+                  {Array.from({ length: 15 }).map((_, i) => (
+                    <View key={`seg2-${i}`} style={[styles.progressTick, { backgroundColor: "#F7CFA1" }]} />
+                  ))}
+                  {Array.from({ length: 28 }).map((_, i) => (
+                    <View key={`seg3-${i}`} style={[styles.progressTick, { backgroundColor: "#5EBA7D" }]} />
+                  ))}
+                </View>
+
+                <AppText style={styles.wellnessFooterText}>Doing so great</AppText>
               </View>
-
-              <View style={styles.progressBar}>
-                {Array.from({ length: 15 }).map((_, i) => (
-                  <View key={`seg1-${i}`} style={[styles.progressTick, { backgroundColor: "#DE5A3E" }]} />
-                ))}
-                {Array.from({ length: 15 }).map((_, i) => (
-                  <View key={`seg2-${i}`} style={[styles.progressTick, { backgroundColor: "#F7CFA1" }]} />
-                ))}
-                {Array.from({ length: 28 }).map((_, i) => (
-                  <View key={`seg3-${i}`} style={[styles.progressTick, { backgroundColor: "#5EBA7D" }]} />
-                ))}
-              </View>
-
-              <AppText style={styles.wellnessFooterText}>Doing so great</AppText>
             </View>
           </View>
-        </View>
 
         <View style={styles.eventsSection}>
           <View style={styles.sectionHeader}>
@@ -155,7 +161,7 @@ export function HomeScreen() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.eventList}>
             {EVENTS.map((event) => (
               <View key={event.id} style={styles.eventCard}>
-                <Image source={{ uri: eventImage }} style={styles.eventImage} />
+                <Image source={{ uri: event.image }} style={styles.eventImage} />
                 <View style={styles.eventBody}>
                   <View style={styles.eventMetaRow}>
                     <View style={styles.eventTag}>
@@ -183,16 +189,35 @@ export function HomeScreen() {
             ))}
           </ScrollView>
         </View>
+      </ScrollView>
 
-        {showDatePicker && (
-          <DateTimePicker
-            value={selectedDate}
-            mode="date"
-            display="default"
-            onChange={onChangeDate}
-            maximumDate={new Date()}
-          />
-        )}
+        <Modal visible={showDatePicker} transparent animationType="slide">
+          <View style={styles.modalOverlay}>
+            <View style={styles.bottomSheet}>
+              <View style={styles.sheetHandleWrap}>
+                <View style={styles.sheetHandle} />
+              </View>
+              <View style={styles.sheetHeader}>
+                <AppText style={styles.sheetTitle}>Select date</AppText>
+                <AppText style={styles.sheetSubtitle}>Choose a date to view your past wellbeing records.</AppText>
+              </View>
+
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display="spinner"
+                onChange={onChangeDate}
+                maximumDate={new Date()}
+                style={styles.datePicker}
+                textColor="#000000"
+              />
+
+              <Pressable style={styles.selectButton} onPress={() => setShowDatePicker(false)}>
+                <AppText style={styles.selectButtonText}>Select</AppText>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
       </View>
     </AppScreen>
   );
@@ -203,12 +228,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F2F2F2"
   },
-  topPanel: {
+  headerContainer: {
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 14,
     paddingTop: 12,
+    paddingBottom: 16,
+    zIndex: 10
+  },
+  scrollContent: {
+    paddingBottom: 20
+  },
+  summaryContainer: {
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 14,
     paddingBottom: 20,
-    gap: 32
+    paddingTop: 8
   },
   header: {
     height: 48,
@@ -272,7 +306,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-    marginBottom: 16
+    marginBottom: 4
   },
   dateTextCentered: {
     fontFamily: "InterMedium",
@@ -287,7 +321,7 @@ const styles = StyleSheet.create({
     color: "#202020",
     textAlign: "center",
     paddingHorizontal: 12,
-    marginBottom: 24
+    marginBottom: 8
   },
   summaryItems: {
     width: "100%",
@@ -311,8 +345,8 @@ const styles = StyleSheet.create({
   },
   summaryEmoji: {
     fontSize: 25,
-    lineHeight: 28,
-    includeFontPadding: false
+    textAlign: "center",
+    paddingTop: 4
   },
   summaryLabel: {
     fontFamily: "InterMedium",
@@ -471,5 +505,62 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 21,
     color: "#5F5F5F",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    justifyContent: "flex-end"
+  },
+  bottomSheet: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 40,
+    gap: 20
+  },
+  sheetHandleWrap: {
+    alignItems: "center",
+    marginBottom: 10
+  },
+  sheetHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#E0E0E0"
+  },
+  sheetHeader: {
+    gap: 4
+  },
+  sheetTitle: {
+    fontFamily: "InterSemiBold",
+    fontSize: 22,
+    color: "#202020"
+  },
+  sheetSubtitle: {
+    fontFamily: "Inter",
+    fontSize: 15,
+    color: "#5F5F5F"
+  },
+  datePicker: {
+    height: 200,
+    width: "100%",
+    backgroundColor: "#F7F7F7",
+    borderRadius: 12,
+    overflow: "hidden"
+  },
+  selectButton: {
+    height: 52,
+    backgroundColor: "#EA6A05",
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 10
+  },
+  selectButtonText: {
+    fontFamily: "InterMedium",
+    fontSize: 16,
+    color: "#FFFFFF"
   }
 });

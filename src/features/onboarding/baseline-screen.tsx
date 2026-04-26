@@ -300,7 +300,8 @@ const styles = StyleSheet.create({
   },
   emoji: {
     fontSize: 32,
-    textAlign: "center"
+    textAlign: "center",
+    paddingTop: 4
   },
   optionLabel: {
     fontFamily: "InterMedium",

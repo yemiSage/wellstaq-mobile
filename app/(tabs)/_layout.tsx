@@ -43,7 +43,7 @@ function WellstaqTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           }
 
           const color = focused ? theme.colors.primary[1] : "#636363";
-          const strokeWidth = focused ? 1.8 : 2;
+          const strokeWidth = focused ? 1.8 : 1.6;
           const options = descriptors[route.key]?.options;
 
           return (

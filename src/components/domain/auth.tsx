@@ -46,18 +46,18 @@ export function AuthGradientBackground() {
     const ambientAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(ambientShift, {
-          toValue: { x: 100, y: 80 },
-          duration: 6000,
+          toValue: { x: 180, y: 150 },
+          duration: 3500,
           useNativeDriver: true
         }),
         Animated.timing(ambientShift, {
-          toValue: { x: -80, y: 100 },
-          duration: 6500,
+          toValue: { x: -150, y: 180 },
+          duration: 4000,
           useNativeDriver: true
         }),
         Animated.timing(ambientShift, {
           toValue: { x: -50, y: -50 },
-          duration: 6000,
+          duration: 3500,
           useNativeDriver: true
         })
       ])
@@ -66,18 +66,18 @@ export function AuthGradientBackground() {
     const warmthAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(warmthShift, {
-          toValue: { x: -100, y: -80 },
-          duration: 6500,
+          toValue: { x: -180, y: -150 },
+          duration: 3800,
           useNativeDriver: true
         }),
         Animated.timing(warmthShift, {
-          toValue: { x: 80, y: -100 },
-          duration: 6000,
+          toValue: { x: 150, y: -180 },
+          duration: 3500,
           useNativeDriver: true
         }),
         Animated.timing(warmthShift, {
           toValue: { x: 50, y: 50 },
-          duration: 6500,
+          duration: 3800,
           useNativeDriver: true
         })
       ])
@@ -119,9 +119,9 @@ export function AuthGradientBackground() {
   });
 
   return (
-    <View style={[StyleSheet.absoluteFill, { overflow: "hidden" }]}>
+    <View pointerEvents="none" style={[StyleSheet.absoluteFill, { overflow: "hidden" }]}>
       <LinearGradient
-        colors={["#A2D7C1", "#F5D061", "#F2A679", "#E8DFD1"]}
+        colors={["#E6F5F0", "#FDF1CC", "#FCEEE3", "#F8F6F2"]}
         locations={[0, 0.32, 0.74, 1]}
         start={{ x: 0.01, y: 0.05 }}
         end={{ x: 1, y: 0.98 }}
@@ -129,7 +129,7 @@ export function AuthGradientBackground() {
       />
       <Animated.View style={[StyleSheet.absoluteFill, { opacity: ambientOpacity, transform: ambientShift.getTranslateTransform() }]}>
         <LinearGradient
-          colors={["rgba(68, 186, 142, 0.9)", "rgba(235, 186, 73, 0.6)", "rgba(255,255,255,0)"]}
+          colors={["rgba(162, 215, 193, 0.85)", "rgba(245, 208, 97, 0.65)", "rgba(255,255,255,0)"]}
           locations={[0, 0.52, 1]}
           start={{ x: 0.02, y: 0.18 }}
           end={{ x: 0.92, y: 0.84 }}
@@ -138,7 +138,7 @@ export function AuthGradientBackground() {
       </Animated.View>
       <Animated.View style={[StyleSheet.absoluteFill, { opacity: warmthOpacity, transform: warmthShift.getTranslateTransform() }]}>
         <LinearGradient
-          colors={["rgba(240, 161, 80, 0.8)", "rgba(224, 110, 83, 0.7)", "rgba(255,255,255,0)"]}
+          colors={["rgba(242, 166, 121, 0.75)", "rgba(240, 150, 120, 0.65)", "rgba(255,255,255,0)"]}
           locations={[0, 0.58, 1]}
           start={{ x: 0.7, y: 0.02 }}
           end={{ x: 0.28, y: 1 }}
