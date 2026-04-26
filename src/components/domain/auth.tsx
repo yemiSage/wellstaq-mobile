@@ -38,26 +38,26 @@ export function LaunchSplashScreenView() {
 }
 
 export function AuthGradientBackground() {
-  const ambientShift = useRef(new Animated.ValueXY({ x: -10, y: -6 })).current;
-  const warmthShift = useRef(new Animated.ValueXY({ x: 8, y: 10 })).current;
+  const ambientShift = useRef(new Animated.ValueXY({ x: -50, y: -50 })).current;
+  const warmthShift = useRef(new Animated.ValueXY({ x: 50, y: 50 })).current;
   const glowPulse = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const ambientAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(ambientShift, {
-          toValue: { x: 6, y: 4 },
-          duration: 7600,
+          toValue: { x: 100, y: 80 },
+          duration: 6000,
           useNativeDriver: true
         }),
         Animated.timing(ambientShift, {
-          toValue: { x: -8, y: -4 },
-          duration: 7200,
+          toValue: { x: -80, y: 100 },
+          duration: 6500,
           useNativeDriver: true
         }),
         Animated.timing(ambientShift, {
-          toValue: { x: -10, y: -6 },
-          duration: 6400,
+          toValue: { x: -50, y: -50 },
+          duration: 6000,
           useNativeDriver: true
         })
       ])
@@ -66,18 +66,18 @@ export function AuthGradientBackground() {
     const warmthAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(warmthShift, {
-          toValue: { x: -6, y: -4 },
-          duration: 7900,
+          toValue: { x: -100, y: -80 },
+          duration: 6500,
           useNativeDriver: true
         }),
         Animated.timing(warmthShift, {
-          toValue: { x: 10, y: 8 },
-          duration: 7300,
+          toValue: { x: 80, y: -100 },
+          duration: 6000,
           useNativeDriver: true
         }),
         Animated.timing(warmthShift, {
-          toValue: { x: 8, y: 10 },
-          duration: 6600,
+          toValue: { x: 50, y: 50 },
+          duration: 6500,
           useNativeDriver: true
         })
       ])
@@ -87,12 +87,12 @@ export function AuthGradientBackground() {
       Animated.sequence([
         Animated.timing(glowPulse, {
           toValue: 1,
-          duration: 5600,
+          duration: 4000,
           useNativeDriver: true
         }),
         Animated.timing(glowPulse, {
           toValue: 0,
-          duration: 5600,
+          duration: 4000,
           useNativeDriver: true
         })
       ])
@@ -111,17 +111,17 @@ export function AuthGradientBackground() {
 
   const ambientOpacity = glowPulse.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.38, 0.52]
+    outputRange: [0.6, 1]
   });
   const warmthOpacity = glowPulse.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.34, 0.46]
+    outputRange: [0.5, 0.9]
   });
 
   return (
     <View style={[StyleSheet.absoluteFill, { overflow: "hidden" }]}>
       <LinearGradient
-        colors={["#EEF7F1", "#FFF6DC", "#FBE3D2", "#FDFBF8"]}
+        colors={["#A2D7C1", "#F5D061", "#F2A679", "#E8DFD1"]}
         locations={[0, 0.32, 0.74, 1]}
         start={{ x: 0.01, y: 0.05 }}
         end={{ x: 1, y: 0.98 }}
@@ -129,7 +129,7 @@ export function AuthGradientBackground() {
       />
       <Animated.View style={[StyleSheet.absoluteFill, { opacity: ambientOpacity, transform: ambientShift.getTranslateTransform() }]}>
         <LinearGradient
-          colors={["rgba(199, 246, 230, 0.78)", "rgba(255, 244, 210, 0.34)", "rgba(255,255,255,0)"]}
+          colors={["rgba(68, 186, 142, 0.9)", "rgba(235, 186, 73, 0.6)", "rgba(255,255,255,0)"]}
           locations={[0, 0.52, 1]}
           start={{ x: 0.02, y: 0.18 }}
           end={{ x: 0.92, y: 0.84 }}
@@ -138,7 +138,7 @@ export function AuthGradientBackground() {
       </Animated.View>
       <Animated.View style={[StyleSheet.absoluteFill, { opacity: warmthOpacity, transform: warmthShift.getTranslateTransform() }]}>
         <LinearGradient
-          colors={["rgba(255, 241, 189, 0.52)", "rgba(249, 201, 162, 0.44)", "rgba(255,255,255,0)"]}
+          colors={["rgba(240, 161, 80, 0.8)", "rgba(224, 110, 83, 0.7)", "rgba(255,255,255,0)"]}
           locations={[0, 0.58, 1]}
           start={{ x: 0.7, y: 0.02 }}
           end={{ x: 0.28, y: 1 }}
@@ -146,7 +146,7 @@ export function AuthGradientBackground() {
         />
       </Animated.View>
       <LinearGradient
-        colors={["rgba(255,255,255,0.26)", "rgba(255,255,255,0.08)", "rgba(255,255,255,0.22)"]}
+        colors={["rgba(255,255,255,0.15)", "rgba(255,255,255,0.05)", "rgba(255,255,255,0.1)"]}
         locations={[0, 0.5, 1]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -328,8 +328,10 @@ const styles = StyleSheet.create({
   },
   gradientLayer: {
     ...StyleSheet.absoluteFillObject,
-    width: "112%",
-    height: "112%"
+    width: "200%",
+    height: "200%",
+    top: "-50%",
+    left: "-50%"
   },
   card: {
     backgroundColor: theme.colors.auth.surface,

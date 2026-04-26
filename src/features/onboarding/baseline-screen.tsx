@@ -1,6 +1,6 @@
 import { router } from "expo-router";
-import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Animated, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { OnboardingHeader, OnboardingPrimaryCta, OnboardingTopBar, onboardingUi } from "@/components/domain/onboarding";
@@ -84,9 +84,34 @@ const INITIAL_SELECTIONS: BaselineSelections = {
   workLifeBalance: {}
 };
 
+const EMOJI_BG_COLORS = [
+  "#FFF0F0", // Light red
+  "#F0F4FF", // Light blue
+  "#FFF8E6", // Light yellow
+  "#E6FFE6", // Light green
+  "#F9F0FF", // Light purple
+  "#FFF0F5"  // Light pink
+];
+
 export function BaselineScreen() {
   const [stepIndex, setStepIndex] = useState(0);
   const [selections, setSelections] = useState<BaselineSelections>(INITIAL_SELECTIONS);
+
+  const slideAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    slideAnim.setValue(0);
+    Animated.timing(slideAnim, {
+      toValue: 1,
+      duration: 350,
+      useNativeDriver: true
+    }).start();
+  }, [stepIndex, slideAnim]);
+
+  const translateX = slideAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [60, 0]
+  });
 
   const activeStep = BASELINE_STEPS[stepIndex];
   const selection = selections[activeStep.key];
@@ -134,72 +159,75 @@ export function BaselineScreen() {
             subtitle="Select the emoji that reflect the most, how you are feeling right now"
           />
 
-          <View style={styles.card}>
-            <AppText style={styles.question}>{activeStep.question}</AppText>
+          <Animated.View style={{ opacity: slideAnim, transform: [{ translateX }] }}>
+            <View style={styles.card}>
+              <AppText style={styles.question}>{activeStep.question}</AppText>
 
-            <View style={styles.optionGrid}>
-              {activeStep.options.map((option, index) => {
-                const isActive = selection.value === option.value && selection.label === option.label;
+              <View style={styles.optionGrid}>
+                {activeStep.options.map((option, index) => {
+                  const isActive = selection.value === option.value && selection.label === option.label;
+                  const bgColor = EMOJI_BG_COLORS[index % EMOJI_BG_COLORS.length];
 
-                return (
-                  <Pressable
-                    key={`${activeStep.key}-${option.label}-${index}`}
-                    accessibilityRole="button"
-                    onPress={() =>
-                      setSelections((current) => ({
-                        ...current,
-                        [activeStep.key]: {
-                          ...current[activeStep.key],
-                          value: option.value,
-                          label: option.label
-                        }
-                      }))
-                    }
-                    style={({ pressed }) => [styles.optionItem, pressed && styles.optionPressed]}
-                  >
-                    <View style={[styles.emojiShell, isActive && styles.emojiShellActive]}>
-                      <View style={styles.emojiWrap}>
-                        <AppText style={styles.emoji}>{option.emoji}</AppText>
+                  return (
+                    <Pressable
+                      key={`${activeStep.key}-${option.label}-${index}`}
+                      accessibilityRole="button"
+                      onPress={() =>
+                        setSelections((current) => ({
+                          ...current,
+                          [activeStep.key]: {
+                            ...current[activeStep.key],
+                            value: option.value,
+                            label: option.label
+                          }
+                        }))
+                      }
+                      style={({ pressed }) => [styles.optionItem, pressed && styles.optionPressed]}
+                    >
+                      <View style={[styles.emojiShell, { backgroundColor: bgColor }, isActive && styles.emojiShellActive]}>
+                        <View style={styles.emojiWrap}>
+                          <AppText style={styles.emoji}>{option.emoji}</AppText>
+                        </View>
                       </View>
-                    </View>
-                    <AppText numberOfLines={1} ellipsizeMode="clip" style={[styles.optionLabel, isActive && styles.optionLabelActive]}>
-                      {option.label}
-                    </AppText>
-                  </Pressable>
-                );
-              })}
+                      <AppText numberOfLines={1} ellipsizeMode="clip" style={[styles.optionLabel, isActive && styles.optionLabelActive]}>
+                        {option.label}
+                      </AppText>
+                    </Pressable>
+                  );
+                })}
+              </View>
             </View>
-          </View>
 
-          <View style={styles.reasonBlock}>
-            <AppText style={styles.reasonTitle}>
-              {selectedLabel ? `What reason makes you feel ${selectedLabel} today?` : "What reason makes you feel this way?"}
-            </AppText>
-            <View style={styles.reasonWrap}>
-              {SHARED_REASONS.map((reason) => {
-                const active = selection.reason === reason;
+            <View style={styles.reasonBlock}>
+              <AppText style={styles.reasonTitle}>
+                {selectedLabel ? `What reason makes you feel ${selectedLabel} today?` : "What reason makes you feel this way?"}
+              </AppText>
+              <View style={styles.reasonWrap}>
+                {SHARED_REASONS.map((reason) => {
+                  const active = selection.reason === reason;
 
-                return (
-                  <Pressable
-                    key={`${activeStep.key}-${reason}`}
-                    accessibilityRole="button"
-                    onPress={() =>
-                      setSelections((current) => ({
-                        ...current,
-                        [activeStep.key]: {
-                          ...current[activeStep.key],
-                          reason
-                        }
-                      }))
-                    }
-                    style={({ pressed }) => [styles.reasonChip, active && styles.reasonChipActive, pressed && styles.optionPressed]}
-                  >
-                    <AppText style={[styles.reasonChipText, active && styles.reasonChipTextActive]}>{reason}</AppText>
-                  </Pressable>
-                );
-              })}
+                  return (
+                    <Pressable
+                      key={`${activeStep.key}-${reason}`}
+                      accessibilityRole="button"
+                      onPress={() =>
+                        setSelections((current) => ({
+                          ...current,
+                          [activeStep.key]: {
+                            ...current[activeStep.key],
+                            reason
+                          }
+                        }))
+                      }
+                      style={({ pressed }) => [styles.reasonChip, active && styles.reasonChipActive, pressed && styles.optionPressed]}
+                    >
+                      <AppText style={[styles.reasonChipText, active && styles.reasonChipTextActive]}>{reason}</AppText>
+                    </Pressable>
+                  );
+                })}
+              </View>
             </View>
-          </View>
+          </Animated.View>
         </ScrollView>
 
         <View style={styles.footer}>
@@ -254,19 +282,15 @@ const styles = StyleSheet.create({
     gap: 2
   },
   emojiShell: {
-    width: 54.92,
+    width: 55,
     height: 55,
     borderRadius: 32,
     borderWidth: 1,
     borderColor: "#E8E8E8",
-    backgroundColor: "#F6F7F6",
     alignItems: "center",
-    justifyContent: "center",
-    padding: 10
+    justifyContent: "center"
   },
   emojiWrap: {
-    width: 34.92,
-    height: 34.92,
     alignItems: "center",
     justifyContent: "center"
   },
@@ -276,10 +300,7 @@ const styles = StyleSheet.create({
   },
   emoji: {
     fontSize: 32,
-    lineHeight: 35,
-    textAlign: "center",
-    textAlignVertical: "center",
-    includeFontPadding: false
+    textAlign: "center"
   },
   optionLabel: {
     fontFamily: "InterMedium",

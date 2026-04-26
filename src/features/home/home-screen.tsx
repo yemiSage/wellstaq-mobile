@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Bell, CalendarDays } from "lucide-react-native";
+import { Bell, CalendarDays, ChevronDown } from "lucide-react-native";
 import { Image, Modal, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import { AppScreen } from "@/components/ui/app-screen";
@@ -17,20 +17,29 @@ const SUMMARY_ITEMS = [
   { label: "Good Social", emoji: "\u{1F91D}" }
 ] as const;
 
+const EMOJI_BG_COLORS = [
+  "#FFF0F0", // Light red
+  "#F0F4FF", // Light blue
+  "#FFF8E6", // Light yellow
+  "#E6FFE6", // Light green
+  "#F9F0FF", // Light purple
+  "#FFF0F5"  // Light pink
+];
+
 const EVENTS = [
   {
     id: "mindful-living",
     title: "Mindful living session",
     date: "Thurs, Nov 14th 2024",
     location: "Online, Remote",
-    cta: "RSVP Today"
+    cta: "32 slots left"
   },
   {
     id: "guided-meditation",
     title: "Guided meditation",
     date: "Fri, Dec 1st 2024",
     location: "Online, Mobile",
-    cta: "Sign Up"
+    cta: "12 slots left"
   }
 ] as const;
 
@@ -81,14 +90,13 @@ export function HomeScreen() {
         <View style={styles.topPanel}>
           <View style={styles.header}>
             <View style={styles.avatar}>
-              <Image source={{ uri: avatarImage }} style={styles.avatarImage} />
+              <Image source={avatarImage} style={styles.avatarImage} />
             </View>
 
             <View style={styles.greetingBlock}>
               <AppText style={styles.greeting}>
                 Hello, <AppText style={styles.name}>{displayName}</AppText> {"\u{1F44B}"}
               </AppText>
-              <AppText style={styles.subtitle}>Trust you are feeling good today</AppText>
             </View>
 
             <View style={styles.bellWrap}>
@@ -97,22 +105,17 @@ export function HomeScreen() {
           </View>
 
           <View style={styles.summaryCard}>
-            <View style={styles.dateRow}>
-              <View style={styles.dateInfo}>
-                <CalendarDays size={18} color="#636363" strokeWidth={1.6} />
-                <AppText style={styles.dateText}>{formatDisplayDate(selectedDate)}</AppText>
-              </View>
-              <Pressable onPress={() => setShowDatePicker(true)} hitSlop={8}>
-                <AppText style={styles.editText}>Edit</AppText>
-              </Pressable>
-            </View>
+            <Pressable style={styles.dateRowCentered} onPress={() => setShowDatePicker(true)} hitSlop={8}>
+              <AppText style={styles.dateTextCentered}>{formatDisplayDate(selectedDate)}</AppText>
+              <ChevronDown size={20} color="#636363" strokeWidth={2} />
+            </Pressable>
 
-            <AppText style={styles.summaryText}>Here's the summary of how you are doing this week</AppText>
+            <AppText style={styles.summaryTextLarge}>Here's the summary of how you are doing this week</AppText>
 
             <View style={styles.summaryItems}>
-              {SUMMARY_ITEMS.map((item) => (
+              {SUMMARY_ITEMS.map((item, index) => (
                 <View key={item.label} style={styles.summaryItem}>
-                  <View style={styles.summaryEmojiCircle}>
+                  <View style={[styles.summaryEmojiCircle, { backgroundColor: EMOJI_BG_COLORS[index % EMOJI_BG_COLORS.length] }]}>
                     <AppText style={styles.summaryEmoji}>{item.emoji}</AppText>
                   </View>
                   <AppText style={styles.summaryLabel}>{item.label}</AppText>
@@ -218,7 +221,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 32,
-    backgroundColor: "#EFEFEF",
+    backgroundColor: "#FFEDD5",
     borderWidth: 1,
     borderColor: "#FFDCB7",
     overflow: "hidden"
@@ -235,7 +238,7 @@ const styles = StyleSheet.create({
     gap: 4
   },
   greeting: {
-    fontFamily: "InterSemiBold",
+    fontFamily: "InterMedium",
     fontSize: 16,
     lineHeight: 24,
     color: "#5F5F5F"
@@ -264,36 +267,27 @@ const styles = StyleSheet.create({
     gap: 12,
     alignItems: "center"
   },
-  dateRow: {
-    width: "100%",
+  dateRowCentered: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between"
+    justifyContent: "center",
+    gap: 6,
+    marginBottom: 16
   },
-  dateInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5
-  },
-  dateText: {
+  dateTextCentered: {
     fontFamily: "InterMedium",
     fontSize: 14,
-    lineHeight: 21,
     color: "#636363"
   },
-  editText: {
-    fontFamily: "InterMedium",
-    fontSize: 14,
-    lineHeight: 21,
-    color: "#EA6A05"
-  },
-  summaryText: {
+  summaryTextLarge: {
     alignSelf: "stretch",
     fontFamily: "InterSemiBold",
-    fontSize: 15,
-    lineHeight: 22.5,
-    color: "#5F5F5F",
-    marginBottom: 4
+    fontSize: 26,
+    lineHeight: 36,
+    color: "#202020",
+    textAlign: "center",
+    paddingHorizontal: 12,
+    marginBottom: 24
   },
   summaryItems: {
     width: "100%",
@@ -312,7 +306,6 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     borderWidth: 1,
     borderColor: "#EAEAEA",
-    backgroundColor: "#F4F4F4",
     alignItems: "center",
     justifyContent: "center"
   },
@@ -342,7 +335,7 @@ const styles = StyleSheet.create({
     fontFamily: "InterSemiBold",
     fontSize: 16,
     lineHeight: 24,
-    color: "#5F5F5F",
+    color: "#202020",
   },
   wellnessValue: {
     fontFamily: "InterSemiBold",
@@ -386,9 +379,9 @@ const styles = StyleSheet.create({
     marginBottom: 14
   },
   sectionTitle: {
-    fontFamily: "InterMedium",
-    fontSize: 20,
-    lineHeight: 30,
+    fontFamily: "InterSemiBold",
+    fontSize: 18,
+    lineHeight: 27,
     color: "#202020"
   },
   seeMore: {
