@@ -46,12 +46,12 @@ export function AuthGradientBackground() {
     const ambientAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(ambientShift, {
-          toValue: { x: 180, y: 150 },
+          toValue: { x: 270, y: 225 },
           duration: 3500,
           useNativeDriver: true
         }),
         Animated.timing(ambientShift, {
-          toValue: { x: -150, y: 180 },
+          toValue: { x: -225, y: 270 },
           duration: 4000,
           useNativeDriver: true
         }),
@@ -66,12 +66,12 @@ export function AuthGradientBackground() {
     const warmthAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(warmthShift, {
-          toValue: { x: -180, y: -150 },
+          toValue: { x: -270, y: -225 },
           duration: 3800,
           useNativeDriver: true
         }),
         Animated.timing(warmthShift, {
-          toValue: { x: 150, y: -180 },
+          toValue: { x: 225, y: -270 },
           duration: 3500,
           useNativeDriver: true
         }),
@@ -111,11 +111,11 @@ export function AuthGradientBackground() {
 
   const ambientOpacity = glowPulse.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.6, 1]
+    outputRange: [0.4, 1]
   });
   const warmthOpacity = glowPulse.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.5, 0.9]
+    outputRange: [0.3, 0.9]
   });
 
   return (
@@ -129,7 +129,7 @@ export function AuthGradientBackground() {
       />
       <Animated.View style={[StyleSheet.absoluteFill, { opacity: ambientOpacity, transform: ambientShift.getTranslateTransform() }]}>
         <LinearGradient
-          colors={["rgba(162, 215, 193, 0.85)", "rgba(245, 208, 97, 0.65)", "rgba(255,255,255,0)"]}
+          colors={["rgba(192, 235, 213, 0.9)", "rgba(255, 228, 127, 0.8)", "rgba(255,255,255,0)"]}
           locations={[0, 0.52, 1]}
           start={{ x: 0.02, y: 0.18 }}
           end={{ x: 0.92, y: 0.84 }}
@@ -138,7 +138,7 @@ export function AuthGradientBackground() {
       </Animated.View>
       <Animated.View style={[StyleSheet.absoluteFill, { opacity: warmthOpacity, transform: warmthShift.getTranslateTransform() }]}>
         <LinearGradient
-          colors={["rgba(242, 166, 121, 0.75)", "rgba(240, 150, 120, 0.65)", "rgba(255,255,255,0)"]}
+          colors={["rgba(255, 196, 151, 0.85)", "rgba(255, 180, 150, 0.8)", "rgba(255,255,255,0)"]}
           locations={[0, 0.58, 1]}
           start={{ x: 0.7, y: 0.02 }}
           end={{ x: 0.28, y: 1 }}
