@@ -270,13 +270,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     alignItems: "center",
-    alignContent: "flex-start",
-    justifyContent: "flex-start",
-    columnGap: 34,
-    rowGap: 20
+    alignContent: "center",
+    justifyContent: "center",
+    gap: 24
   },
   optionItem: {
-    width: 55,
+    width: 65,
     height: 77,
     alignItems: "center",
     gap: 2
@@ -284,13 +283,14 @@ const styles = StyleSheet.create({
   emojiShell: {
     width: 55,
     height: 55,
-    borderRadius: 32,
+    borderRadius: 28,
     borderWidth: 1,
     borderColor: "#E8E8E8",
     alignItems: "center",
     justifyContent: "center"
   },
   emojiWrap: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center"
   },
@@ -299,9 +299,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary[4]
   },
   emoji: {
-    fontSize: 32,
+    fontSize: 30,
     textAlign: "center",
-    paddingTop: 4
+    includeFontPadding: false
   },
   optionLabel: {
     fontFamily: "InterMedium",
