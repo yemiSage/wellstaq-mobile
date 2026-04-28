@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Bell, CalendarDays, ChevronDown } from "lucide-react-native";
-import { Image, Modal, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Animated, Image, Modal, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import { AppScreen } from "@/components/ui/app-screen";
 import { AppText } from "@/components/ui/text";
+import { onboardingRepository } from "@/services/mock/repositories";
 import { useSessionStore } from "@/state/session-store";
 
 const avatarImage = require("@/assets/images/avatar.png");
@@ -73,11 +74,57 @@ function formatDisplayDate(date: Date) {
 
 export function HomeScreen() {
   const email = useSessionStore((state) => state.session?.email);
-  const nameWithoutNumbers = email?.split("@")[0]?.replace(/[0-9]/g, "");
-  const firstName = nameWithoutNumbers?.split(/[._-]/)[0] || "Yemi";
-  const displayName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+  const [displayName, setDisplayName] = useState("Yemi");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [sheetAnim] = useState(new Animated.Value(450));
+
+  useEffect(() => {
+    if (showDatePicker) {
+      Animated.spring(sheetAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 65,
+        friction: 10
+      }).start();
+    }
+  }, [showDatePicker, sheetAnim]);
+
+  const handleCloseDatePicker = () => {
+    Animated.timing(sheetAnim, {
+      toValue: 450,
+      duration: 200,
+      useNativeDriver: true
+    }).start(() => {
+      setShowDatePicker(false);
+    });
+  };
+
+  useEffect(() => {
+    async function loadName() {
+      try {
+        const profile = await onboardingRepository.getProfile();
+        if (profile && profile.fullName && profile.fullName !== "Yedmifig Adebayo") {
+          const firstName = profile.fullName.split(" ")[0];
+          setDisplayName(firstName);
+        } else if (email) {
+          const nameWithoutNumbers = email.split("@")[0].replace(/[0-9]/g, "");
+          const firstName = nameWithoutNumbers.split(/[._-]/)[0];
+          const formatted = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+          setDisplayName(formatted || "Yemi");
+        }
+      } catch (e) {
+        // Fallback to email parsing if profile fetch fails
+        if (email) {
+          const nameWithoutNumbers = email.split("@")[0].replace(/[0-9]/g, "");
+          const firstName = nameWithoutNumbers.split(/[._-]/)[0];
+          const formatted = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+          setDisplayName(formatted || "Yemi");
+        }
+      }
+    }
+    loadName();
+  }, [email]);
 
   const currentHour = new Date().getHours();
   const timeGreeting = currentHour < 12 ? "Good morning" : currentHour < 18 ? "Good afternoon" : "Good evening";
@@ -191,9 +238,10 @@ export function HomeScreen() {
         </View>
       </ScrollView>
 
-        <Modal visible={showDatePicker} transparent animationType="slide">
+        <Modal visible={showDatePicker} transparent animationType="none">
           <View style={styles.modalOverlay}>
-            <View style={styles.bottomSheet}>
+            <Pressable style={StyleSheet.absoluteFill} onPress={handleCloseDatePicker} />
+            <Animated.View style={[styles.bottomSheet, { transform: [{ translateY: sheetAnim }] }]}>
               <View style={styles.sheetHandleWrap}>
                 <View style={styles.sheetHandle} />
               </View>
@@ -212,10 +260,10 @@ export function HomeScreen() {
                 textColor="#000000"
               />
 
-              <Pressable style={styles.selectButton} onPress={() => setShowDatePicker(false)}>
+              <Pressable style={styles.selectButton} onPress={handleCloseDatePicker}>
                 <AppText style={styles.selectButtonText}>Select</AppText>
               </Pressable>
-            </View>
+            </Animated.View>
           </View>
         </Modal>
       </View>
@@ -269,7 +317,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 48,
     justifyContent: "center",
-    gap: 4
+    gap: 2
   },
   greeting: {
     fontFamily: "InterMedium",
